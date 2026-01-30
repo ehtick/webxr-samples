@@ -246,10 +246,29 @@ export class Scene extends Node {
       xrlayer = layer ? layer : session.renderState.layers[0];
       gl.bindFramebuffer(gl.FRAMEBUFFER, renderer.xrFramebuffer);
 
-      for (let view of pose.views) {
-        let glLayer = renderer.getXrBinding(session).getViewSubImage(xrlayer, view);  
+      // We need to do something different with texture-array.
+      if (xrlayer.usingTextureArray ?? false) {
+        var viewIndex = 0;
+        for (let view of pose.views) {
+          let glLayer = renderer.getXrBinding(session).getViewSubImage(xrlayer, view);
+          gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, glLayer.colorTexture, 0, viewIndex);
+          gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, glLayer.depthStencilTexture, 0, viewIndex);
 
-        if (view == pose.views[0]) {
+          views = [new WebXRView(view, glLayer, glLayer.viewport)];
+          if (this.clear) {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          }
+          this.drawViewArray(views, depthData);
+
+          ++viewIndex;
+        }
+        return;
+      }
+
+      for (let view of pose.views) {
+        let glLayer = renderer.getXrBinding(session).getViewSubImage(xrlayer, view);
+
+        if (view == pose.views[0] || xrlayer.layout === "stereo") {
           if (renderer.multisampledMultiview) {
             renderer.multiviewExtension.framebufferTextureMultisampleMultiviewOVR(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, glLayer.colorTexture, 0, renderer.maxSamples, 0, 2);
           } else if (renderer.multiview) {
@@ -268,6 +287,7 @@ export class Scene extends Node {
             }
           }
         }
+
         views.push(new WebXRView(view, glLayer, glLayer.viewport));
       }
     } else {

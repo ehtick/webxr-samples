@@ -155,6 +155,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         proj_layer = xrGLFactory.createProjectionLayer({
           textureType: usingTextureArray ? 'texture-array' : 'texture',
           space: refSpace, stencil: false });
+        // Add a custom attribute to the layer.
+        proj_layer.usingTextureArray = usingTextureArray;
         session.updateRenderState({ layers: [proj_layer] });
 
         session.requestAnimationFrame(onXRFrame);

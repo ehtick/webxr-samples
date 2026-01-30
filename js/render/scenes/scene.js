@@ -268,7 +268,7 @@ export class Scene extends Node {
       for (let view of pose.views) {
         let glLayer = renderer.getXrBinding(session).getViewSubImage(xrlayer, view);
 
-        if (view == pose.views[0] || xrlayer.layout === "stereo") {
+        if (view == pose.views[0]) {
           if (renderer.multisampledMultiview) {
             renderer.multiviewExtension.framebufferTextureMultisampleMultiviewOVR(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, glLayer.colorTexture, 0, renderer.maxSamples, 0, 2);
           } else if (renderer.multiview) {
@@ -287,7 +287,6 @@ export class Scene extends Node {
             }
           }
         }
-
         views.push(new WebXRView(view, glLayer, glLayer.viewport));
       }
     } else {
